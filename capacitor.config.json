@@ -1,0 +1,19 @@
+{
+  "appId": "com.deencore.ai",
+  "appName": "DeenCore AI",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true,
+    "buildOptions": {
+      "keystorePath": "",
+      "keystorePassword": "",
+      "keystoreAlias": "",
+      "keystoreAliasPassword": "",
+      "releaseType": "AAB"
+    }
+  }
+}
