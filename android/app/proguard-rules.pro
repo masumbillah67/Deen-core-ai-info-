@@ -1,21 +1,66 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# ==============================================================================
+# ProGuard & R8 Configuration for Capacitor Android Application
+# ==============================================================================
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Preserve line numbers and source file names for readable crash stack traces
+-keepattributes SourceFile,LineNumberTable
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Keep native (JNI) method names and classes
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# ------------------------------------------------------------------------------
+# WebView & JavaScript Interfaces (CRITICAL FOR CAPACITOR)
+# ------------------------------------------------------------------------------
+# Preserve JavaScript interface methods so that WebView can invoke native methods
+-keepattributes JavascriptInterface
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
+# AndroidX WebKit
+-keep class androidx.webkit.** { *; }
+-dontwarn androidx.webkit.**
+
+# ------------------------------------------------------------------------------
+# Capacitor Core & Plugins
+# ------------------------------------------------------------------------------
+-keep class com.getcapacitor.** { *; }
+-keep interface com.getcapacitor.** { *; }
+
+# Keep Plugin annotations and reflectively accessed methods
+-keep @interface com.getcapacitor.annotation.CapacitorPlugin
+-keep @interface com.getcapacitor.annotation.Permission
+-keep @interface com.getcapacitor.annotation.ActivityCallback
+-keep @interface com.getcapacitor.PluginMethod
+
+-keepclassmembers class * extends com.getcapacitor.Plugin {
+    public <methods>;
+    public <fields>;
+}
+
+-keepclassmembers class com.getcapacitor.BridgeActivity {
+    public <methods>;
+}
+
+# ------------------------------------------------------------------------------
+# Cordova Compatibility (capacitor-cordova-android-plugins)
+# ------------------------------------------------------------------------------
+-keep class org.apache.cordova.** { *; }
+-keep interface org.apache.cordova.** { *; }
+-keep class * extends org.apache.cordova.CordovaPlugin {
+    public <methods>;
+}
+
+# ------------------------------------------------------------------------------
+# Android Support / AndroidX / Material
+# ------------------------------------------------------------------------------
+-dontwarn androidx.**
+-keep class androidx.core.app.CoreComponentFactory { *; }
+-keep class androidx.core.content.FileProvider { *; }
+
+# Google Play Services / Firebase optional warnings
+-dontwarn com.google.android.gms.**
+-dontwarn com.google.firebase.**
