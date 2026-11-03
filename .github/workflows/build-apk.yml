@@ -30,6 +30,9 @@ jobs:
       - name: Install NPM Dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Generate Android Icons & Splash Assets
+        run: node scripts/generate-android-assets.cjs
+
       - name: Compile Web Assets
         run: npm run build
 
@@ -42,7 +45,11 @@ jobs:
 
       - name: Accept Android SDK Licenses
         run: |
-          yes | sdkmanager --licenses || true
+          if [ -n "$ANDROID_HOME" ] && [ -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
+            yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          else
+            yes | sdkmanager --licenses || true
+          fi
 
       - name: Grant Execute Permission to Gradle
         run: |
@@ -60,6 +67,7 @@ jobs:
           APK_FILE=$(find android/app/build/outputs/apk -type f -name "*.apk" | head -n 1)
           if [ -z "$APK_FILE" ]; then
             echo "ERROR: APK file was not found!"
+            find android/app/build/outputs -type f || true
             exit 1
           fi
           echo "Found APK: $APK_FILE"
