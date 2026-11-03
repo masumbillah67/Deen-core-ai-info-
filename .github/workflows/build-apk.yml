@@ -16,33 +16,33 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: 22
 
-      - name: Setup Java JDK 17
+      - name: Setup Java JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+          java-version: '21'
 
       - name: Install NPM Dependencies
-        run: npm ci || npm install
+        run: npm install --legacy-peer-deps
 
-      - name: Compile & Build Web Assets
+      - name: Compile Web Assets
         run: npm run build
 
-      - name: Initialize or Sync Capacitor Android Project
+      - name: Sync Capacitor Android
         run: |
           if [ ! -d "android" ]; then
             npx cap add android
           fi
           npx cap sync android
+
+      - name: Accept Android SDK Licenses
+        run: |
+          yes | sdkmanager --licenses || true
 
       - name: Grant Execute Permission to Gradle
         run: |
@@ -52,12 +52,23 @@ jobs:
       - name: Build Debug APK with Gradle
         run: |
           cd android
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug --stacktrace --no-daemon
+
+      - name: Locate Generated APK
+        id: find_apk
+        run: |
+          APK_FILE=$(find android/app/build/outputs/apk -type f -name "*.apk" | head -n 1)
+          if [ -z "$APK_FILE" ]; then
+            echo "ERROR: APK file was not found!"
+            exit 1
+          fi
+          echo "Found APK: $APK_FILE"
+          echo "apk_path=$APK_FILE" >> $GITHUB_OUTPUT
 
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: DeenCore-AI-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ steps.find_apk.outputs.apk_path }}
           if-no-files-found: error
           retention-days: 30
